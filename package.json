@@ -24,6 +24,10 @@
     "url": "https://github.com/Flipboard/express-cluster/issues"
   },
   "homepage": "https://github.com/Flipboard/express-cluster",
+  "dependencies": {
+    "q": "0.9.6",
+    "node-cache": "0.4.1"
+  },
   "devDependencies": {
     "coffee-script": "~1.6.3"
   }

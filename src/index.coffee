@@ -1,6 +1,7 @@
 cluster = require "cluster"
 os = require "os"
 http = require "http"
+cache = require "./cache"
 
 #
 # Master process: Fork processes and hook cleanup signals as required.
@@ -17,13 +18,19 @@ master = (config) ->
   if config.verbose
     console.log "Master started on pid #{process.pid}, forking #{workerCount} processes"
   for i in [0 .. workerCount - 1]
-    workers.push cluster.fork()
+    worker = cluster.fork() 
+    workers.push worker
+    if config.createCache
+      cache.registerWorker worker, config
 
   cluster.on "exit", (worker, code, signal) ->
     if config.verbose
       console.log "#{worker.process.pid} died with code #{code}, restarting"
     if respawn
-      workers.push cluster.fork()
+      worker = cluster.fork()
+      workers.push worker
+      if config.createCache
+        cache.registerWorker worker, config
 
   process.on "SIGQUIT", ->
     if config.verbose
@@ -52,8 +59,14 @@ worker = (fn) ->
         # Stop accepting new connections
         server.close()
 
+#
+# Export primary cluster method, typically accepting the worker init function.
+#
+
 module.exports = (fn, config={}) ->
   if cluster.isMaster
     master config
   else
     worker fn
+
+module.exports.cache = cache
