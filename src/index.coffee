@@ -23,7 +23,7 @@ master = (config) ->
     if config.verbose
       console.log "#{worker.process.pid} died with code #{code}, restarting"
     if respawn
-      cluster.fork()
+      workers.push cluster.fork()
 
   process.on "SIGQUIT", ->
     if config.verbose
